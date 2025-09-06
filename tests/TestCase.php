@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace Centrex\Btyd\Tests;
 
+use Centrex\Btyd\BtydServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Centrex\Btyd\BtydServiceProvider;
 
 class TestCase extends Orchestra
 {
