@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Centrex\Btyd;
 
 use Illuminate\Support\ServiceProvider;
+use Centrex\Btyd\Commands\FitBtydParams;
 
 class BtydServiceProvider extends ServiceProvider
 {
@@ -47,7 +48,9 @@ class BtydServiceProvider extends ServiceProvider
             ], 'btyd-lang');*/
 
             // Registering package commands.
-            // $this->commands([]);
+            $this->commands([
+                FitBtydParams::class,
+            ]);
         }
     }
 
