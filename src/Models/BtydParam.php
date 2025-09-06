@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Centrex\Btyd\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -7,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class BtydParam extends Model
 {
     protected $table = 'btyd_params';
+
     protected $fillable = ['model', 'params'];
 
     protected $casts = [

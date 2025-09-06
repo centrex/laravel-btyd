@@ -1,12 +1,17 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Centrex\Btyd;
 
 class NelderMeadOptimizer
 {
     protected $f;
+
     protected array $x0;
+
     protected int $maxIter;
+
     protected float $tol;
 
     public function __construct(callable $f, array $x0, int $maxIter = 1000, float $tol = 1e-6)
@@ -49,6 +54,7 @@ class NelderMeadOptimizer
             $worstVal = $vals[$n];
 
             $centroid = array_fill(0, $n, 0.0);
+
             for ($i = 0; $i < $n; $i++) {
                 for ($j = 0; $j < $n; $j++) {
                     $centroid[$j] += $simplex[$i][$j] / $n;
@@ -56,6 +62,7 @@ class NelderMeadOptimizer
             }
 
             $xr = [];
+
             for ($j = 0; $j < $n; $j++) {
                 $xr[$j] = $centroid[$j] + $alpha * ($centroid[$j] - $worst[$j]);
             }
@@ -63,10 +70,12 @@ class NelderMeadOptimizer
 
             if ($fr < $bestVal) {
                 $xe = [];
+
                 for ($j = 0; $j < $n; $j++) {
                     $xe[$j] = $centroid[$j] + $gamma * ($xr[$j] - $centroid[$j]);
                 }
                 $fe = ($this->f)($xe);
+
                 if ($fe < $fr) {
                     $simplex[$n] = $xe;
                     $vals[$n] = $fe;
@@ -80,12 +89,14 @@ class NelderMeadOptimizer
             } else {
                 if ($fr < $worstVal) {
                     $xc = [];
+
                     for ($j = 0; $j < $n; $j++) {
                         $xc[$j] = $centroid[$j] + $rho * ($xr[$j] - $centroid[$j]);
                     }
                     $fc = ($this->f)($xc);
                 } else {
                     $xc = [];
+
                     for ($j = 0; $j < $n; $j++) {
                         $xc[$j] = $centroid[$j] + $rho * ($worst[$j] - $centroid[$j]);
                     }
@@ -108,16 +119,19 @@ class NelderMeadOptimizer
             $iter++;
             $meanVal = array_sum($vals) / count($vals);
             $ss = 0.0;
+
             foreach ($vals as $v) {
                 $ss += ($v - $meanVal) ** 2;
             }
             $std = sqrt($ss / count($vals));
+
             if ($std < $this->tol) {
                 break;
             }
         }
 
         array_multisort($vals, SORT_ASC, $simplex);
+
         return ['x' => $simplex[0], 'fval' => $vals[0], 'iter' => $iter];
     }
 }

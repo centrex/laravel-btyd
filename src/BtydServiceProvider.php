@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace Centrex\Btyd;
 
-use Illuminate\Support\ServiceProvider;
 use Centrex\Btyd\Commands\FitBtydParams;
+use Illuminate\Support\ServiceProvider;
 
 class BtydServiceProvider extends ServiceProvider
 {

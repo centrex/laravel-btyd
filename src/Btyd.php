@@ -1,12 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Centrex\Btyd;
 
 use Carbon\Carbon;
-use MathPHP\Functions\Special;
 use InvalidArgumentException;
+use MathPHP\Functions\Special;
 
 /**
  * Btyd (Buy 'Til You Die) customer lifetime value model.
@@ -21,10 +21,10 @@ use InvalidArgumentException;
  *  $btyd->fitGammaGamma($monetarySummaries); // monetarySummaries = [ ['frequency'=>..,'monetary'=>..], ... ]
  *  $clv = $btyd->customerClv($customerSummary, 12);
  */
-
 class Btyd
 {
     protected ?array $bgnbdParams = null;
+
     protected ?array $ggParams = null;
 
     /* -------------------------
@@ -38,14 +38,14 @@ class Btyd
      */
     public static function transactionsToSummary(array $transactions, ?Carbon $observationEnd = null): array
     {
-        $observationEnd = $observationEnd ?? Carbon::now();
+        $observationEnd ??= Carbon::now();
 
         if (empty($transactions)) {
             return [
-                'frequency' => 0,
-                'recency'   => 0.0,
-                'T'         => 0.0,
-                'monetary'  => 0.0,
+                'frequency'      => 0,
+                'recency'        => 0.0,
+                'T'              => 0.0,
+                'monetary'       => 0.0,
                 'n_transactions' => 0,
                 'total_revenue'  => 0.0,
             ];
@@ -54,28 +54,29 @@ class Btyd
         // normalize dates
         $tx = array_map(function ($t) {
             $date = $t['date'] instanceof Carbon ? $t['date'] : Carbon::parse($t['date']);
-            return ['date' => $date, 'amount' => (float)$t['amount']];
+
+            return ['date' => $date, 'amount' => (float) $t['amount']];
         }, $transactions);
 
-        usort($tx, fn($a, $b) => $a['date']->lt($b['date']) ? -1 : 1);
+        usort($tx, fn ($a, $b) => $a['date']->lt($b['date']) ? -1 : 1);
 
         $first = $tx[0]['date'];
-        $last  = $tx[count($tx) - 1]['date'];
+        $last = $tx[count($tx) - 1]['date'];
         $n = count($tx);
 
         $frequency = max(0, $n - 1);
-        $recencyDays = (float)$first->diffInDays($last);
-        $Tdays = (float)$first->diffInDays($observationEnd);
+        $recencyDays = (float) $first->diffInDays($last);
+        $Tdays = (float) $first->diffInDays($observationEnd);
         $totalRevenue = array_sum(array_column($tx, 'amount'));
         $monetary = $n > 0 ? $totalRevenue / $n : 0.0;
 
         return [
-            'frequency' => (int)$frequency,
-            'recency'   => $recencyDays,
-            'T'         => $Tdays,
-            'monetary'  => (float)$monetary,
+            'frequency'      => (int) $frequency,
+            'recency'        => $recencyDays,
+            'T'              => $Tdays,
+            'monetary'       => (float) $monetary,
             'n_transactions' => $n,
-            'total_revenue'  => (float)$totalRevenue,
+            'total_revenue'  => (float) $totalRevenue,
         ];
     }
 
@@ -93,19 +94,21 @@ class Btyd
             throw new InvalidArgumentException('Cohort summaries required.');
         }
 
-        $data = array_map(fn($s) => [
-            'x' => (int)($s['frequency'] ?? 0),
-            't_x' => (float)($s['recency'] ?? 0.0),
-            'T' => (float)($s['T'] ?? 0.0),
+        $data = array_map(fn ($s) => [
+            'x'   => (int) ($s['frequency'] ?? 0),
+            't_x' => (float) ($s['recency'] ?? 0.0),
+            'T'   => (float) ($s['T'] ?? 0.0),
         ], $summaries);
 
         $init = $initial ?? ['r' => 0.5, 'alpha' => 1.0, 'a' => 1.0, 'b' => 1.0];
 
         $obj = function (array $params) use ($data): float {
             [$r, $alpha, $a, $b] = $params;
+
             if ($r <= 0 || $alpha <= 0 || $a <= 0 || $b <= 0) {
                 return 1e100;
             }
+
             return $this->bgnbdNegLogLikelihood($data, $r, $alpha, $a, $b);
         };
 
@@ -126,6 +129,7 @@ class Btyd
     protected function bgnbdNegLogLikelihood(array $data, float $r, float $alpha, float $a, float $b): float
     {
         $ll = 0.0;
+
         foreach ($data as $row) {
             $x = $row['x'];
             $t_x = $row['t_x'];
@@ -140,11 +144,13 @@ class Btyd
             $lnB = $this->lnBeta($a + 1, $b + $x) - $this->lnBeta($a, $b);
 
             $ll_i = $lnA + $lnB;
+
             if (!is_finite($ll_i)) {
                 $ll_i = -1e6;
             }
             $ll += $ll_i;
         }
+
         return -$ll;
     }
 
@@ -158,20 +164,23 @@ class Btyd
      */
     public function fitGammaGamma(array $summaries, ?array $initial = null): array
     {
-        $data = array_values(array_filter($summaries, fn($s) => ($s['frequency'] ?? 0) > 0));
+        $data = array_values(array_filter($summaries, fn ($s) => ($s['frequency'] ?? 0) > 0));
+
         if (empty($data)) {
             throw new InvalidArgumentException('Need at least one customer with frequency > 0.');
         }
 
-        $fm = array_map(fn($s) => [(int)$s['frequency'], (float)$s['monetary']], $data);
+        $fm = array_map(fn ($s) => [(int) $s['frequency'], (float) $s['monetary']], $data);
 
         $init = $initial ?? ['p' => 1.0, 'q' => 1.0, 'v' => 1.0];
 
         $obj = function (array $params) use ($fm): float {
             [$p, $q, $v] = $params;
+
             if ($p <= 0 || $q <= 0 || $v <= 0) {
                 return 1e100;
             }
+
             return $this->ggNegLogLikelihood($fm, $p, $q, $v);
         };
 
@@ -181,12 +190,14 @@ class Btyd
 
         [$p, $q, $v] = $res['x'];
         $this->ggParams = ['p' => max(1e-8, $p), 'q' => max(1e-8, $q), 'v' => max(1e-8, $v)];
+
         return $this->ggParams;
     }
 
     protected function ggNegLogLikelihood(array $fm, float $p, float $q, float $v): float
     {
         $ll = 0.0;
+
         foreach ($fm as [$f, $m]) {
             // Using commonly used log-likelihood approximation for gamma-gamma:
             // ll_i = lnGamma(p + f) - lnGamma(p) + p ln q - (p + f) ln (q + f * m / v)
@@ -195,6 +206,7 @@ class Btyd
             $ll_i -= ($p + $f) * log($q + ($f * $m / $v) + 1e-12);
             $ll += $ll_i;
         }
+
         return -$ll;
     }
 
@@ -217,9 +229,9 @@ class Btyd
         $a = $this->bgnbdParams['a'];
         $b = $this->bgnbdParams['b'];
 
-        $x = (int)$customerSummary['frequency'];
-        $t_x = (float)$customerSummary['recency'];
-        $T = (float)$customerSummary['T'];
+        $x = (int) $customerSummary['frequency'];
+        $t_x = (float) $customerSummary['recency'];
+        $T = (float) $customerSummary['T'];
         $t_future_days = $horizonMonths * 30.44;
 
         // Use conditional expectation approximation (Fader & Hardie)
@@ -228,7 +240,8 @@ class Btyd
         $pAlive = $this->probAlive($x, $t_x, $T, $r, $alpha, $a, $b);
 
         $expected = $numer * $t_future_days * $pAlive;
-        return max(0.0, (float)$expected);
+
+        return max(0.0, (float) $expected);
     }
 
     /**
@@ -244,8 +257,8 @@ class Btyd
         $q = $this->ggParams['q'];
         $v = $this->ggParams['v'];
 
-        $f = (int)$customerSummary['frequency'];
-        $m = (float)$customerSummary['monetary'];
+        $f = (int) $customerSummary['frequency'];
+        $m = (float) $customerSummary['monetary'];
 
         if ($f <= 0) {
             return $m;
@@ -253,7 +266,8 @@ class Btyd
 
         // Using Gamma-Gamma expected conditional spend: (p + f) / (q + f - 1) * (m) (approx)
         $den = max(1e-8, ($q + $f - 1));
-        return (float)(($p + $f) / $den) * $m;
+
+        return (float) (($p + $f) / $den) * $m;
     }
 
     /**
@@ -263,6 +277,7 @@ class Btyd
     {
         $expTx = $this->expectedTransactions($customerSummary, $horizonMonths);
         $expMon = $this->expectedMonetary($customerSummary);
+
         return round($expTx * $expMon, 2);
     }
 
@@ -282,6 +297,7 @@ class Btyd
         $denTerm = ($b + $x - 1) > 0 ? ($b + $x - 1) : ($b + $x + 1e-8);
         $ratio = pow(($alpha + $T) / ($alpha + $t_x + 1e-8), ($r + $x));
         $val = 1.0 / (1.0 + ($a / $denTerm) * $ratio);
+
         return min(1.0, max(0.0, $val));
     }
 }
