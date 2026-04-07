@@ -12,7 +12,7 @@ class BtydServiceProvider extends ServiceProvider
     /**
      * Bootstrap the application services.
      */
-    public function boot()
+    public function boot(): void
     {
         /*
          * Optional methods to load your package assets
@@ -57,14 +57,12 @@ class BtydServiceProvider extends ServiceProvider
     /**
      * Register the application services.
      */
-    public function register()
+    public function register(): void
     {
         // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'btyd');
 
         // Register the main class to use with the facade
-        $this->app->singleton('btyd', function () {
-            return new Btyd();
-        });
+        $this->app->singleton('btyd', fn (): Btyd => new Btyd());
     }
 }

@@ -40,7 +40,7 @@ class Btyd
     {
         $observationEnd ??= Carbon::now();
 
-        if (empty($transactions)) {
+        if ($transactions === []) {
             return [
                 'frequency'      => 0,
                 'recency'        => 0.0,
@@ -52,13 +52,13 @@ class Btyd
         }
 
         // normalize dates
-        $tx = array_map(function ($t) {
+        $tx = array_map(function (array $t): array {
             $date = $t['date'] instanceof Carbon ? $t['date'] : Carbon::parse($t['date']);
 
             return ['date' => $date, 'amount' => (float) $t['amount']];
         }, $transactions);
 
-        usort($tx, fn ($a, $b) => $a['date']->lt($b['date']) ? -1 : 1);
+        usort($tx, fn ($a, $b): int => $a['date']->lt($b['date']) ? -1 : 1);
 
         $first = $tx[0]['date'];
         $last = $tx[count($tx) - 1]['date'];
@@ -90,11 +90,11 @@ class Btyd
      */
     public function fitBgNbd(array $summaries, ?array $initial = null): array
     {
-        if (empty($summaries)) {
+        if ($summaries === []) {
             throw new InvalidArgumentException('Cohort summaries required.');
         }
 
-        $data = array_map(fn ($s) => [
+        $data = array_map(fn ($s): array => [
             'x'   => (int) ($s['frequency'] ?? 0),
             't_x' => (float) ($s['recency'] ?? 0.0),
             'T'   => (float) ($s['T'] ?? 0.0),
@@ -164,13 +164,13 @@ class Btyd
      */
     public function fitGammaGamma(array $summaries, ?array $initial = null): array
     {
-        $data = array_values(array_filter($summaries, fn ($s) => ($s['frequency'] ?? 0) > 0));
+        $data = array_values(array_filter($summaries, fn ($s): bool => ($s['frequency'] ?? 0) > 0));
 
-        if (empty($data)) {
+        if ($data === []) {
             throw new InvalidArgumentException('Need at least one customer with frequency > 0.');
         }
 
-        $fm = array_map(fn ($s) => [(int) $s['frequency'], (float) $s['monetary']], $data);
+        $fm = array_map(fn ($s): array => [(int) $s['frequency'], (float) $s['monetary']], $data);
 
         $init = $initial ?? ['p' => 1.0, 'q' => 1.0, 'v' => 1.0];
 
@@ -241,7 +241,7 @@ class Btyd
 
         $expected = $numer * $t_future_days * $pAlive;
 
-        return max(0.0, (float) $expected);
+        return max(0.0, $expected);
     }
 
     /**
@@ -255,7 +255,6 @@ class Btyd
 
         $p = $this->ggParams['p'];
         $q = $this->ggParams['q'];
-        $v = $this->ggParams['v'];
 
         $f = (int) $customerSummary['frequency'];
         $m = (float) $customerSummary['monetary'];
@@ -295,7 +294,7 @@ class Btyd
         // Using closed-form approximation:
         // p_alive = 1 / (1 + (a/(b + x - 1)) * ((alpha + T)/(alpha + t_x))^(r + x))
         $denTerm = ($b + $x - 1) > 0 ? ($b + $x - 1) : ($b + $x + 1e-8);
-        $ratio = pow(($alpha + $T) / ($alpha + $t_x + 1e-8), ($r + $x));
+        $ratio = (($alpha + $T) / ($alpha + $t_x + 1e-8)) ** ($r + $x);
         $val = 1.0 / (1.0 + ($a / $denTerm) * $ratio);
 
         return min(1.0, max(0.0, $val));

@@ -10,16 +10,10 @@ class NelderMeadOptimizer
 
     protected array $x0;
 
-    protected int $maxIter;
-
-    protected float $tol;
-
-    public function __construct(callable $f, array $x0, int $maxIter = 1000, float $tol = 1e-6)
+    public function __construct(callable $f, array $x0, protected int $maxIter = 1000, protected float $tol = 1e-6)
     {
         $this->f = $f;
         $this->x0 = array_values($x0);
-        $this->maxIter = $maxIter;
-        $this->tol = $tol;
     }
 
     public function minimize(): array
