@@ -4,65 +4,36 @@ declare(strict_types = 1);
 
 namespace Centrex\Btyd;
 
-use Centrex\Btyd\Commands\FitBtydParams;
+use Centrex\Btyd\Commands\{BtydCommand, FitBtydParams};
 use Illuminate\Support\ServiceProvider;
 
 class BtydServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap the application services.
-     */
     public function boot(): void
     {
-        /*
-         * Optional methods to load your package assets
-         */
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'btyd');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'btyd');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/config.php' => config_path('btyd.php'),
             ], 'btyd-config');
 
-            // Publishing the migrations.
             $this->publishes([
                 __DIR__ . '/../database/migrations/' => database_path('migrations'),
             ], 'btyd-migrations');
 
-            // Publishing the views.
-            /*$this->publishes([
-                __DIR__.'/../resources/views' => resource_path('views/vendor/btyd'),
-            ], 'btyd-views');*/
-
-            // Publishing assets.
-            /*$this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/btyd'),
-            ], 'btyd-assets');*/
-
-            // Publishing the translation files.
-            /*$this->publishes([
-                __DIR__.'/../resources/lang' => resource_path('lang/vendor/btyd'),
-            ], 'btyd-lang');*/
-
-            // Registering package commands.
             $this->commands([
+                BtydCommand::class,
                 FitBtydParams::class,
             ]);
         }
     }
 
-    /**
-     * Register the application services.
-     */
     public function register(): void
     {
-        // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'btyd');
 
-        // Register the main class to use with the facade
         $this->app->singleton('btyd', fn (): Btyd => new Btyd());
+        $this->app->singleton(Btyd::class, fn (): Btyd => new Btyd());
     }
 }

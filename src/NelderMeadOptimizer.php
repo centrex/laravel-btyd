@@ -6,7 +6,7 @@ namespace Centrex\Btyd;
 
 class NelderMeadOptimizer
 {
-    protected $f;
+    protected mixed $f;
 
     protected array $x0;
 
@@ -35,16 +35,16 @@ class NelderMeadOptimizer
 
         $alpha = 1.0;
         $gamma = 2.0;
-        $rho = 0.5;
+        $rho   = 0.5;
         $sigma = 0.5;
-        $iter = 0;
+        $iter  = 0;
 
         while ($iter < $this->maxIter) {
             array_multisort($vals, SORT_ASC, $simplex);
 
-            $best = $simplex[0];
-            $bestVal = $vals[0];
-            $worst = $simplex[$n];
+            $best     = $simplex[0];
+            $bestVal  = $vals[0];
+            $worst    = $simplex[$n];
             $worstVal = $vals[$n];
 
             $centroid = array_fill(0, $n, 0.0);
@@ -72,14 +72,14 @@ class NelderMeadOptimizer
 
                 if ($fe < $fr) {
                     $simplex[$n] = $xe;
-                    $vals[$n] = $fe;
+                    $vals[$n]    = $fe;
                 } else {
                     $simplex[$n] = $xr;
-                    $vals[$n] = $fr;
+                    $vals[$n]    = $fr;
                 }
             } elseif ($fr < $vals[$n - 1]) {
                 $simplex[$n] = $xr;
-                $vals[$n] = $fr;
+                $vals[$n]    = $fr;
             } else {
                 if ($fr < $worstVal) {
                     $xc = [];
@@ -99,7 +99,7 @@ class NelderMeadOptimizer
 
                 if ($fc < $worstVal) {
                     $simplex[$n] = $xc;
-                    $vals[$n] = $fc;
+                    $vals[$n]    = $fc;
                 } else {
                     for ($i = 1; $i <= $n; $i++) {
                         for ($j = 0; $j < $n; $j++) {
@@ -112,7 +112,7 @@ class NelderMeadOptimizer
 
             $iter++;
             $meanVal = array_sum($vals) / count($vals);
-            $ss = 0.0;
+            $ss      = 0.0;
 
             foreach ($vals as $v) {
                 $ss += ($v - $meanVal) ** 2;

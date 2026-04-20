@@ -5,21 +5,21 @@ declare(strict_types = 1);
 namespace Centrex\Btyd\Tests;
 
 use Centrex\Btyd\BtydServiceProvider;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName): string => 'Centrex\\Btyd\\Database\\Factories\\' . class_basename($modelName) . 'Factory',
-        );
+        $this->artisan('migrate', ['--database' => 'testing'])->run();
     }
 
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             BtydServiceProvider::class,
@@ -29,10 +29,11 @@ class TestCase extends Orchestra
     public function getEnvironmentSetUp($app): void
     {
         config()->set('database.default', 'testing');
-
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_btyd_table.php.stub';
-        $migration->up();
-        */
+        config()->set('database.connections.testing', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+        config()->set('btyd.min_customers', 3);
     }
 }
