@@ -40,7 +40,7 @@ it('computes frequency as repeat purchases (n - 1)', function (): void {
 it('computes recency as days between first and last purchase', function (): void {
     $now = Carbon::now();
     $first = $now->copy()->subDays(300);
-    $last  = $now->copy()->subDays(50);
+    $last = $now->copy()->subDays(50);
 
     $txs = [
         ['date' => $first, 'amount' => 500],
@@ -118,7 +118,7 @@ it('stores and retrieves params from the database', function (): void {
     BtydParam::store('gamma_gamma', ['p' => 6.25, 'q' => 3.74, 'v' => 15.44]);
 
     $bgnbd = BtydParam::getParams('bgnbd');
-    $gg    = BtydParam::getParams('gamma_gamma');
+    $gg = BtydParam::getParams('gamma_gamma');
 
     expect($bgnbd['r'])->toBe(0.24)
         ->and($gg['p'])->toBe(6.25);
@@ -180,10 +180,10 @@ it('predicts more transactions for a recently active customer', function (): voi
         ->setBgnbdParams(['r' => 0.24, 'alpha' => 4.41, 'a' => 0.79, 'b' => 2.43])
         ->setGgParams(['p' => 6.25, 'q' => 3.74, 'v' => 15.44]);
 
-    $active   = ['frequency' => 5, 'recency' => 300.0, 'T' => 365.0, 'monetary' => 5000.0];
+    $active = ['frequency' => 5, 'recency' => 300.0, 'T' => 365.0, 'monetary' => 5000.0];
     $inactive = ['frequency' => 1, 'recency' => 10.0,  'T' => 365.0, 'monetary' => 5000.0];
 
-    $txActive   = $btyd->expectedTransactions($active, 12);
+    $txActive = $btyd->expectedTransactions($active, 12);
     $txInactive = $btyd->expectedTransactions($inactive, 12);
 
     expect($txActive)->toBeGreaterThan($txInactive);
@@ -197,7 +197,7 @@ it('scales expected transactions proportionally with horizon', function (): void
     $summary = ['frequency' => 3, 'recency' => 200.0, 'T' => 365.0, 'monetary' => 1000.0];
 
     $tx12 = $btyd->expectedTransactions($summary, 12);
-    $tx6  = $btyd->expectedTransactions($summary, 6);
+    $tx6 = $btyd->expectedTransactions($summary, 6);
 
     expect($tx12)->toBeGreaterThan($tx6);
 });
@@ -234,7 +234,7 @@ it('gives higher p_alive to frequent recent buyers', function (): void {
     $btyd = (new Btyd())
         ->setBgnbdParams(['r' => 0.24, 'alpha' => 4.41, 'a' => 0.79, 'b' => 2.43]);
 
-    $loyal   = ['frequency' => 8, 'recency' => 350.0, 'T' => 365.0];
+    $loyal = ['frequency' => 8, 'recency' => 350.0, 'T' => 365.0];
     $churned = ['frequency' => 1, 'recency' => 5.0,   'T' => 365.0];
 
     expect($btyd->probabilityAlive($loyal))->toBeGreaterThan($btyd->probabilityAlive($churned));
@@ -264,7 +264,7 @@ it('fits bgnbd params that produce positive values', function (): void {
         ['frequency' => 2, 'recency' => 200.0, 'T' => 300.0, 'monetary' => 4500.0],
     ];
 
-    $btyd   = new Btyd();
+    $btyd = new Btyd();
     $params = $btyd->fitBgNbd($summaries, null, false);
 
     expect($params['r'])->toBeGreaterThan(0.0)
@@ -282,7 +282,7 @@ it('fits gamma-gamma params that produce positive values', function (): void {
         ['frequency' => 4, 'monetary' => 6000.0],
     ];
 
-    $btyd   = new Btyd();
+    $btyd = new Btyd();
     $params = $btyd->fitGammaGamma($summaries, null, false);
 
     expect($params['p'])->toBeGreaterThan(0.0)

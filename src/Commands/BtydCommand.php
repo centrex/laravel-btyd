@@ -35,7 +35,7 @@ class BtydCommand extends Command
         $btyd->loadFromDb();
 
         $bgnbd = $btyd->getBgnbdParams();
-        $gg    = $btyd->getGgParams();
+        $gg = $btyd->getGgParams();
 
         if ($bgnbd !== null) {
             $this->table(['BG/NBD Parameter', 'Value', 'Interpretation'], [
@@ -58,7 +58,7 @@ class BtydCommand extends Command
 
         $horizonMonths = (int) config('btyd.horizon_months', 12);
         $this->line("Default horizon: <comment>{$horizonMonths} months</comment>");
-        $this->line("Min customers for fitting: <comment>" . config('btyd.min_customers', 10) . "</comment>");
+        $this->line('Min customers for fitting: <comment>' . config('btyd.min_customers', 10) . '</comment>');
         $this->line('');
 
         return self::SUCCESS;

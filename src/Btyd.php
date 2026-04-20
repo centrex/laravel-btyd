@@ -22,7 +22,7 @@ class Btyd
     public function loadFromDb(): static
     {
         $bgnbd = BtydParam::getParams('bgnbd');
-        $gg    = BtydParam::getParams('gamma_gamma');
+        $gg = BtydParam::getParams('gamma_gamma');
 
         if ($bgnbd !== null) {
             $this->bgnbdParams = $this->normaliseNamedParams($bgnbd, ['r', 'alpha', 'a', 'b']);
@@ -101,14 +101,14 @@ class Btyd
         usort($tx, static fn (array $a, array $b): int => $a['date']->lt($b['date']) ? -1 : 1);
 
         $first = $tx[0]['date'];
-        $last  = $tx[count($tx) - 1]['date'];
-        $n     = count($tx);
+        $last = $tx[count($tx) - 1]['date'];
+        $n = count($tx);
 
-        $frequency    = max(0, $n - 1);
-        $recencyDays  = (float) $first->diffInDays($last);
-        $Tdays        = (float) $first->diffInDays($observationEnd);
+        $frequency = max(0, $n - 1);
+        $recencyDays = (float) $first->diffInDays($last);
+        $Tdays = (float) $first->diffInDays($observationEnd);
         $totalRevenue = (float) array_sum(array_column($tx, 'amount'));
-        $monetary     = $n > 0 ? $totalRevenue / $n : 0.0;
+        $monetary = $n > 0 ? $totalRevenue / $n : 0.0;
 
         return [
             'frequency'      => (int) $frequency,
@@ -149,10 +149,10 @@ class Btyd
         ], $summaries);
 
         $defaults = config('btyd.bgnbd_initial', ['r' => 0.5, 'alpha' => 1.0, 'a' => 1.0, 'b' => 1.0]);
-        $init     = $initial ?? $defaults;
+        $init = $initial ?? $defaults;
 
         $maxIter = (int) config('btyd.optimizer.max_iter', 2000);
-        $tol     = (float) config('btyd.optimizer.tol', 1e-6);
+        $tol = (float) config('btyd.optimizer.tol', 1e-6);
 
         $obj = function (array $params) use ($data): float {
             [$r, $alpha, $a, $b] = $params;
@@ -164,9 +164,9 @@ class Btyd
             return $this->bgnbdNegLogLikelihood($data, $r, $alpha, $a, $b);
         };
 
-        $x0       = [$init['r'], $init['alpha'], $init['a'], $init['b']];
+        $x0 = [$init['r'], $init['alpha'], $init['a'], $init['b']];
         $optimizer = new NelderMeadOptimizer($obj, $x0, $maxIter, $tol);
-        $res      = $optimizer->minimize();
+        $res = $optimizer->minimize();
 
         [$r, $alpha, $a, $b] = $res['x'];
 
@@ -192,13 +192,13 @@ class Btyd
         $ll = 0.0;
 
         foreach ($data as $row) {
-            $x   = $row['x'];
+            $x = $row['x'];
             $t_x = $row['t_x'];
-            $T   = $row['T'];
+            $T = $row['T'];
 
-            $lnA  = Special::logGamma($r + $x) - Special::logGamma($r) - Special::logGamma($x + 1);
+            $lnA = Special::logGamma($r + $x) - Special::logGamma($r) - Special::logGamma($x + 1);
             $lnA += $r * log($alpha) - ($r + $x) * log($alpha + $T);
-            $lnB  = $this->lnBeta($a + 1, $b + $x) - $this->lnBeta($a, $b);
+            $lnB = $this->lnBeta($a + 1, $b + $x) - $this->lnBeta($a, $b);
 
             $ll_i = $lnA + $lnB;
 
@@ -230,10 +230,10 @@ class Btyd
         $fm = array_map(static fn (array $s): array => [(int) $s['frequency'], (float) $s['monetary']], $data);
 
         $defaults = config('btyd.gamma_gamma_initial', ['p' => 1.0, 'q' => 1.0, 'v' => 1.0]);
-        $init     = $initial ?? $defaults;
+        $init = $initial ?? $defaults;
 
         $maxIter = (int) config('btyd.optimizer.max_iter', 2000);
-        $tol     = (float) config('btyd.optimizer.tol', 1e-6);
+        $tol = (float) config('btyd.optimizer.tol', 1e-6);
 
         $obj = function (array $params) use ($fm): float {
             [$p, $q, $v] = $params;
@@ -245,9 +245,9 @@ class Btyd
             return $this->ggNegLogLikelihood($fm, $p, $q, $v);
         };
 
-        $x0       = [$init['p'], $init['q'], $init['v']];
+        $x0 = [$init['p'], $init['q'], $init['v']];
         $optimizer = new NelderMeadOptimizer($obj, $x0, $maxIter, $tol);
-        $res      = $optimizer->minimize();
+        $res = $optimizer->minimize();
 
         [$p, $q, $v] = $res['x'];
 
@@ -269,10 +269,10 @@ class Btyd
         $ll = 0.0;
 
         foreach ($fm as [$f, $m]) {
-            $ll_i  = Special::logGamma($p + $f) - Special::logGamma($p);
+            $ll_i = Special::logGamma($p + $f) - Special::logGamma($p);
             $ll_i += $p * log($q);
             $ll_i -= ($p + $f) * log($q + ($f * $m / $v) + 1e-12);
-            $ll   += $ll_i;
+            $ll += $ll_i;
         }
 
         return -$ll;
@@ -292,17 +292,17 @@ class Btyd
             throw new InvalidArgumentException('BG/NBD parameters not fitted. Call loadFromDb() or fitBgNbd() first.');
         }
 
-        $r     = $this->bgnbdParams['r'];
+        $r = $this->bgnbdParams['r'];
         $alpha = $this->bgnbdParams['alpha'];
-        $a     = $this->bgnbdParams['a'];
-        $b     = $this->bgnbdParams['b'];
+        $a = $this->bgnbdParams['a'];
+        $b = $this->bgnbdParams['b'];
 
-        $x            = (int) $customerSummary['frequency'];
-        $t_x          = (float) $customerSummary['recency'];
-        $T            = (float) $customerSummary['T'];
-        $tFutureDays  = $horizonMonths * 30.44;
+        $x = (int) $customerSummary['frequency'];
+        $t_x = (float) $customerSummary['recency'];
+        $T = (float) $customerSummary['T'];
+        $tFutureDays = $horizonMonths * 30.44;
 
-        $numer  = ($r + $x) / ($alpha + $T);
+        $numer = ($r + $x) / ($alpha + $T);
         $pAlive = $this->probAlive($x, $t_x, $T, $r, $alpha, $a, $b);
 
         return max(0.0, $numer * $tFutureDays * $pAlive);
@@ -338,7 +338,7 @@ class Btyd
      */
     public function customerClv(array $customerSummary, int $horizonMonths = 12): float
     {
-        $expTx  = $this->expectedTransactions($customerSummary, $horizonMonths);
+        $expTx = $this->expectedTransactions($customerSummary, $horizonMonths);
         $expMon = $this->expectedMonetary($customerSummary);
 
         return round($expTx * $expMon, 2);
@@ -376,8 +376,8 @@ class Btyd
     protected function probAlive(int $x, float $t_x, float $T, float $r, float $alpha, float $a, float $b): float
     {
         $denTerm = ($b + $x - 1) > 0 ? ($b + $x - 1) : ($b + $x + 1e-8);
-        $ratio   = (($alpha + $T) / ($alpha + $t_x + 1e-8)) ** ($r + $x);
-        $val     = 1.0 / (1.0 + ($a / $denTerm) * $ratio);
+        $ratio = (($alpha + $T) / ($alpha + $t_x + 1e-8)) ** ($r + $x);
+        $val = 1.0 / (1.0 + ($a / $denTerm) * $ratio);
 
         return min(1.0, max(0.0, $val));
     }
