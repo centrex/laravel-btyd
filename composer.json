@@ -1,12 +1,12 @@
 {
-    "name": "centrex/btyd",
+    "name": "centrex/laravel-btyd",
     "description": "Laravel package for BTYD (BG/NBD + Gamma-Gamma) CLV prediction",
     "keywords": [
         "centrex",
         "laravel",
         "btyd"
     ],
-    "homepage": "https://github.com/centrex/btyd",
+    "homepage": "https://github.com/centrex/laravel-btyd",
     "license": "MIT",
     "type": "library",
     "authors": [
